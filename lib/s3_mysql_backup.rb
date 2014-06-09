@@ -105,7 +105,7 @@ class S3MysqlBackup
   def remove_old_backups
     today   = Date.today
     weekly  = (today - config["keep_daily"])
-    monthly = (today - config["keep_daily"] - config["keep_weekly"]
+    monthly = (today - config["keep_daily"] - config["keep_weekly"])
 
     path = File.expand_path(config['backup_dir'])
 
