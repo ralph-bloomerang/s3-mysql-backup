@@ -12,7 +12,8 @@ Gem::Specification.new do |s|
   s.require_path = "."
   s.require_paths << "lib"
 
-  s.executables  = "s3-mysql-backup"
+  s.executables  << "s3-mysql-backup"
+  s.executables  << "s3-mysql-backup-all"
 
   s.add_runtime_dependency("aws-sdk", ["~> 1.37"])
 
