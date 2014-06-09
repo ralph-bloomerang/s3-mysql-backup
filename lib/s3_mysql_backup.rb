@@ -32,6 +32,9 @@ class S3MysqlBackup
       "mail_port"           => "587",
       "mail_authentication" => :login,
       "backup_dir"          => "~/s3_mysql_backups",
+      "truncate_files"      => false,
+      "keep_daily"          => 30,
+      "keep_weekly"         => 90,
     }
 
     if @s3config.nil?
@@ -52,10 +55,12 @@ class S3MysqlBackup
 
   # make the DB backup file
   def dump_db
-    filename  = Time.now.strftime("#{@backup_dir}/#{@db_name}.%Y%m%d.%H%M%S.sql.gz")
+    filename  = Time.now.strftime("#{@backup_dir}/#{@db_name}.%Y%m%d.%H%M%S.sql.7z")
     mysqldump = `which mysqldump`.to_s.strip
-    `#{mysqldump} --host='#{config['dump_host']}' --user='#{config['dump_user']}' --password='#{config['dump_pass']}' '#{@db_name}' | gzip > #{filename}`
-    @s3utils.store(filename, config['remote_dir'])
+    `#{mysqldump} --host='#{config['dump_host']}' --user='#{config['dump_user']}' --password='#{config['dump_pass']}' '#{@db_name}' | p7zip > #{filename}`
+    remote_path = "#{config['remote_dir']}/#{@db_name}".sub(/^\//,"")
+    @s3utils.store(filename, remote_path)
+    File.new(filename, 'w').truncate(0) if config["truncate_files"]
     filename
   end
 
@@ -99,12 +104,12 @@ class S3MysqlBackup
   #   - keep only monthly after that
   def remove_old_backups
     today   = Date.today
-    weekly  = (today - 30)
-    monthly = (today - 120)
+    weekly  = (today - config["keep_daily"])
+    monthly = (today - config["keep_daily"] - config["keep_weekly"]
 
     path = File.expand_path(config['backup_dir'])
 
-    Dir["#{path}/*.sql.gz"].each do |name|
+    Dir["#{path}/*.sql.7z"].each do |name|
       date     = name.split('.')[1]
       filedate = Date.strptime(date, '%Y%m%d')
 
