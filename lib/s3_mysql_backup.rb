@@ -55,7 +55,7 @@ class S3MysqlBackup
 
   # make the DB backup file
   def dump_db
-    filename  = Time.now.strftime("#{@backup_dir}/#{@db_name}.%Y%m%d.%H%M%S.sql.7z")
+    filename  = Time.now.strftime("#{@backup_dir}/#{@db_name}/#{@db_name}.%Y%m%d.%H%M%S.sql.7z")
     mysqldump = `which mysqldump`.to_s.strip
     `#{mysqldump} --host='#{config['dump_host']}' --user='#{config['dump_user']}' --password='#{config['dump_pass']}' '#{@db_name}' | p7zip > #{filename}`
     remote_path = "#{config['remote_dir']}/#{@db_name}".sub(/^\//,"")
@@ -65,7 +65,7 @@ class S3MysqlBackup
   end
 
   def ensure_backup_dir_exists
-    @backup_dir = File.expand_path(config['backup_dir'])
+    @backup_dir = File.expand_path("config['backup_dir']/#{@db_name}")
     FileUtils.mkdir_p @backup_dir
   end
 
@@ -107,7 +107,7 @@ class S3MysqlBackup
     weekly  = (today - config["keep_daily"])
     monthly = (today - config["keep_daily"] - config["keep_weekly"])
 
-    path = File.expand_path(config['backup_dir'])
+    path = File.expand_path("config['backup_dir']/#{@db_name}")
 
     Dir["#{path}/*.sql.7z"].each do |name|
       date     = name.split('.')[1]
