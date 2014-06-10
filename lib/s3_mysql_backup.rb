@@ -65,7 +65,7 @@ class S3MysqlBackup
   end
 
   def ensure_backup_dir_exists
-    @backup_dir = File.expand_path("config['backup_dir']/#{@db_name}")
+    @backup_dir = File.expand_path("#{config['backup_dir']}/#{@db_name}")
     FileUtils.mkdir_p @backup_dir
   end
 
@@ -107,7 +107,7 @@ class S3MysqlBackup
     weekly  = (today - config["keep_daily"])
     monthly = (today - config["keep_daily"] - config["keep_weekly"])
 
-    path = File.expand_path("config['backup_dir']/#{@db_name}")
+    path = File.expand_path("#{config['backup_dir']}/#{@db_name}")
 
     Dir["#{path}/*.sql.7z"].each do |name|
       date     = name.split('.')[1]
